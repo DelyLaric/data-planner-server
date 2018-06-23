@@ -9,9 +9,9 @@ use Firebase\JWT\JWT as JWTBase;
 
 class JWT
 {
-    public $user;
+    protected $user;
 
-    public $key;
+    protected $key;
 
     private $tokenInfo;
 
