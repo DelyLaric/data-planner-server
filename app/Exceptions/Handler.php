@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Exception;
+use App\Services\Transaction;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class Handler extends ExceptionHandler
@@ -44,8 +45,24 @@ class Handler extends ExceptionHandler
      * @param  \Exception  $exception
      * @return \Illuminate\Http\Response
      */
-    public function render($request, Exception $exception)
+    public function render($request, Exception $e)
     {
-        return parent::render($request, $exception);
+        // 回滚已开启的事务
+        if (Transaction::working()) Transaction::rollback();
+
+        // 处理跨域请求的问题
+        // 为无法匹配路由的options请求自动返回一个200响应
+
+        if ($e instanceof CustomerExpection) {
+            return $e->response;
+        }
+
+        if ($e instanceof ValidationException) {
+            $result = $e->errors();
+            $result['data'] = request()->all();
+            return response()->json($result, 422);
+        }
+
+        return parent::render($request, $e);
     }
 }
