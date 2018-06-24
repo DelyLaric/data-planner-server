@@ -16,7 +16,7 @@ class Data extends BaseRepository
 
     public function search($view, $where, $pageSize, $orderBy = ['_id', 'desc'])
     {
-		return Serialize\Pagination::getResource(
+        return Serialize\Pagination::getResource(
             DB::table($view)
               ->where($where)
               ->orderBy($orderBy[0], $orderBy[1])
