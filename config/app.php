@@ -209,8 +209,8 @@ return [
         // 'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         // 'View' => Illuminate\Support\Facades\View::class,
-        // Customs
 
+        // Customs
         'DB' => App\Facades\DB::class,
         'JWT' => App\Facades\JWT::class
 

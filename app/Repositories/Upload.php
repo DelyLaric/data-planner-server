@@ -4,7 +4,7 @@ namespace App\Repositories;
 
 use DB;
 
-class Data extends BaseRepository
+class Upload extends BaseRepository
 {
   public function batchCreate($table, $constraint, $fields, $values)
   {
