@@ -13,7 +13,7 @@ class DataController extends BaseController
     {
 		$params = $this->via([
 			'table' => 'string',
-			'where' => 'array',
+            'where' => 'array',
 			'pageSize' => 'numeric',
 			'order' => 'array'
         ]);
