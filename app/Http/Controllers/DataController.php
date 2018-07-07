@@ -15,7 +15,7 @@ class DataController extends BaseController
 			'table' => 'string',
             'where' => 'array',
 			'pageSize' => 'numeric',
-			'order' => 'array'
+            'orderBy' => 'array'
         ]);
 
 		return call_user_func_array([Data::class, 'search'], $params);
@@ -27,7 +27,8 @@ class DataController extends BaseController
             'namespace' => 'string',
             'table' => 'string',
             'columns' => 'array',
-            'view' => 'string'
+            'view' => 'string',
+            'orderBy' => 'array'
         ]);
 
         $userId = JWT::user()->id;
@@ -37,12 +38,13 @@ class DataController extends BaseController
         $view = $params['view'];
         $table = $params['table'];
         $columns = $params['columns'];
+        $orderBy = $params['orderBy'];
         $namespace = $params['namespace'];
 
         $operationId = DB::table('_log.operations')->insertGetId([
             'type' => 'create',
             'operator_id' => $userId,
-            'namespace' => $namespace,
+            'namespace' => $namespace
         ]);
 
         $id = Data::create($table, $columns);

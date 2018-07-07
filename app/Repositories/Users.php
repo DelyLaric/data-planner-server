@@ -53,7 +53,7 @@ class Users extends BaseRepository
         $data['updated_at'] = DB::raw('now()');
 
         DB::table('_system.users')->where('id', $id)->update($data);
-        return Views\User::where('id', $id)->first();
+        return DB::table('_system.user_view')->where('id', $id)->get()[0];
     }
 
     // 直接使用 role.name 创建用户

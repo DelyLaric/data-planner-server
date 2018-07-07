@@ -7,7 +7,7 @@ use App\Repositories\Models\BaseModel;
 
 class Operation extends BaseRepository
 {
-    public function add($type, $namespace, $userId)
+    public function create($userId, $namespace, $type)
     {
         return DB::table('_log.operations')->insertGetId([
             'type' => $type,

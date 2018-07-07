@@ -14,13 +14,16 @@ class Data extends BaseRepository
         return $query->get()[0];
     }
 
-    public function search($view, $where, $pageSize, $orderBy = ['_id', 'desc'])
+    public function search($view, $where, $pageSize, $orderBy)
     {
+        $builder = DB::table($view)->where($where);
+
+        foreach ($orderBy as $orderByItem) {
+            $builder->orderBy($orderByItem[0], $orderByItem[1]);
+        }
+
         return Serialize\Pagination::getResource(
-            DB::table($view)
-              ->where($where)
-              ->orderBy($orderBy[0], $orderBy[1])
-              ->paginate($pageSize)
+            $builder->paginate($pageSize)
         );
     }
 
