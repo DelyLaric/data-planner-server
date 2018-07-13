@@ -51,4 +51,3 @@ Route::post('records/search', 'RecordController@search');
 
 Route::post('schema/run', 'SchemaController@run');
 
-Route::post('/test', 'TestController@test');

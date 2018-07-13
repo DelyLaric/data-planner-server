@@ -6,10 +6,30 @@ use DB as Database;
 
 class DB
 {
+    /**
+     * @param string $table
+     * @param array<integer>||integer $ids
+     *
+     * @return array<object> $data
+     */
+
     public function find($table, $ids)
     {
-        $ids = is_array(ids) ? $ids : [$ids];
+        $ids = is_array($ids) ? $ids : [$ids];
         return Database::table($table)->whereIn('id', $ids)->get();
+    }
+
+    /**
+     * @param string $table
+     * @param integer $id
+     *
+     * @return object $data
+     */
+
+    public function findOne($table, $id, $columns = '*')
+    {
+        return Database::table($table)->select($columns)
+                       ->where('id', $id)->get()[0];
     }
 
     /**
@@ -18,30 +38,34 @@ class DB
      * 
      * 在制定数据表内创建一条或多条数据
      */
+
     public function create($table, $data)
     {
-        DB::table($table)->insert($data);
+        Database::table($table)->insert($data);
     }
 
-
-    
     /**
      * @param string $table
      * @param array $data
+     * @param string $key
+     * 
+     * @return string|array $id
      * 
      * 在制定数据表中插入一条数据，并返回插入后数据的 id
      */
 
-    public function insertOne($table, $data, $id = 'id')
+    public function insertOne($table, $data, $key = 'id')
     {
-        return DB::table($table)->insertGetId($data, $id)
+        return Database::table($table)->insertGetId($data, $key);
     }
 
     /**
      * @param string $table
      * @param array $data
      * 
-     * 在制定数据表中插入一条或多条数据，并返回插入后数据的 id
+     * @return array $ids
+     * 
+     * 在制定数据表中插入一条或多条数据，并返回所有插入数据的 id
      */
 
     public function insert($table, $data, $id = 'id')
@@ -49,10 +73,22 @@ class DB
         $data = is_array($data) ? $data : [$data];
         $ids = [];
         foreach ($data as $datum) {
-            $ids[] = DB::table($table)->insertGetId($data, $id);
+            $ids[] = Database::table($table)->insertGetId($data, $id);
         }
 
         return $ids;
+    }
+
+    /**
+     * @param string $table
+     * @param array $ids
+     * @param array $data
+     */
+
+    public function update($table, $ids, $data)
+    {
+        $ids = is_array($ids) ? $ids : [$ids];
+        Database::table($table)->whereIn('id', $ids)->update($data);
     }
 
     /**
@@ -67,27 +103,13 @@ class DB
     {
         $ids = is_array($ids) ? $ids : [$ids];
 
-        DB::table($table)->whereIn($key, $ids)->update($data);
+        Database::table($table)->whereIn($key, $ids)->update($data);
     }
-
-    public function 
 
     /**
      * 插入数据并返回 Id
      * 由于技术原因，目前将一条一条地插入
      * @param array $data
-     * [
-     *   {
-     *      "table": "users",
-     *      "data": [{}, {}]
-     *   }
-     * ]
-     * 
-     * @return array ids
-     * [
-     *   'table' => [...],
-     *   'table2' => [...]
-     * ]
      */
 
     // public function insert($data)
@@ -109,12 +131,12 @@ class DB
     //     return $ids;
     // }
 
-    public function update($table, $ids, $data)
-    {
-        $ids = is_array($ids) ? [$ids] : $ids;
+    // public function update($table, $ids, $data)
+    // {
+    //     $ids = is_array($ids) ? [$ids] : $ids;
 
-        Database::table($table)->whereIn('id', $ids)->update($data);
-    }
+    //     Database::table($table)->whereIn('id', $ids)->update($data);
+    // }
 
     public function delete($table, $ids)
     {

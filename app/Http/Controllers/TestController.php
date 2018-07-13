@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use DB;
+use App\Services\Database\Facades\DB;
 
 class TestController extends Controller
 {
     public function test()
     {
-      return DB::select('select * from data."Plan" limit 100');
+      return (
+        DB::find('_system.users', [1, 3])
+      );
     }
 }
