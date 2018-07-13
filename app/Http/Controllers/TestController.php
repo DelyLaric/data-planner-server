@@ -8,8 +8,6 @@ class TestController extends Controller
 {
     public function test()
     {
-      return (
-        DB::find('_system.users', [1, 3])
-      );
+      return 100;
     }
 }
