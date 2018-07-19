@@ -2,23 +2,88 @@
 
 namespace App\Http\Controllers;
 
-use DB;
 use JWT;
 use App\Services\Transaction;
 use App\Repositories\Facades\Data;
+use App\Services\Database\Facades\DB;
 
 class DataController extends BaseController
 {
-    public function search()
+    public function paginate()
     {
 		$params = $this->via([
-			'table' => 'string',
+			'table' => 'string|required',
             'where' => 'array',
 			'pageSize' => 'numeric',
             'orderBy' => 'array'
         ]);
 
-		return call_user_func_array([Data::class, 'search'], $params);
+		return call_user_func_array([DB::class, 'paginate'], $params);
+    }
+
+    public function insert()
+    {
+        $params = $this->via([
+            'table' => 'string|required',
+            'data' => 'array',
+            'view' => 'string'
+        ]);
+
+        $id = DB::insert($params['table'], $params['data']);
+
+        if (isset($params['view'])) {
+            $result = DB::findOne($params['view'], $id);
+        }
+
+        $result = isset($params['view']) ?
+            DB::findOne($params['view'], $id) : null;
+
+        return success_response([
+            'message' => 'success_to_insert_data',
+            'data' => $result
+        ]);
+    }
+
+    public function update()
+    {
+        $params = $this->via([
+            'table' => 'string|required',
+            'id' => 'required',
+            'data' => 'array',
+            'view' => 'string'
+        ]);
+
+        DB::update($params['table'], $params['id'], $params['data']);
+
+        if (isset($params['view'])) {
+            $result = DB::findOne($params['view'], $params['id']);
+        } else $result = null;
+
+        return success_response([
+            'message' => 'success_to_insert_data',
+            'data' => $result
+        ]);
+    }
+
+    public function batchUpdate()
+    {
+        $params = $this->via([
+            'table' => 'string|required',
+            'ids' => 'array',
+            'data' => 'array',
+            'view' => 'string'
+        ]);
+
+        DB::update($params['table'], $params['ids'], $params['data']);
+
+        if (isset($params['view'])) {
+            $result = DB::find($params['view'], $params['ids']);
+        } else $result = null;
+
+        return success_response([
+            'message' => 'success_to_insert_data',
+            'data' => $result
+        ]);
     }
 
     public function create()
@@ -32,7 +97,7 @@ class DataController extends BaseController
         ]);
 
         $userId = JWT::user()->id;
-        
+
         Transaction::begin();
 
         $view = $params['view'];
@@ -59,63 +124,57 @@ class DataController extends BaseController
         ]);
     }
 
-    public function update()
-    {
-        $params = $this->via([
-            'namespace' => 'string',
-			'view' => 'required|string',
-			'id' => 'required',
-			'table' => 'string',
-			'columns' => 'array'
-        ]);
+    // public function update()
+    // {
+    //     $params = $this->via([
+    //         'namespace' => 'string',
+	// 		'view' => 'required|string',
+	// 		'id' => 'required',
+	// 		'table' => 'string',
+	// 		'columns' => 'array'
+    //     ]);
 
-        $id = $params['id'];
-        $view = $params['view'];
-        $table = $params['table'];
-        $columns = $params['columns'];
-        $namespace = $params['namespace'];
+    //     $id = $params['id'];
+    //     $view = $params['view'];
+    //     $table = $params['table'];
+    //     $columns = $params['columns'];
+    //     $namespace = $params['namespace'];
 
-        // 数据一致性检查
-        // Data::updateValidCheck($table, $id, $columns);
-        $userId = JWT::user()->id;
+    //     // 数据一致性检查
+    //     // Data::updateValidCheck($table, $id, $columns);
+    //     $userId = JWT::user()->id;
 
-        Transaction::begin();
+    //     Transaction::begin();
 
-        $operationId = DB::table('_log.operations')->insertGetId([
-            'type' => 'update',
-            'operator_id' => $userId,
-            'namespace' => $namespace
-        ]);
+    //     $operationId = DB::table('_log.operations')->insertGetId([
+    //         'type' => 'update',
+    //         'operator_id' => $userId,
+    //         'namespace' => $namespace
+    //     ]);
 
-        Data::update($table, $id, $columns);
+    //     Data::update($table, $id, $columns);
 
-        Data::takeSnapshot($operationId, $table, $id);
+    //     Data::takeSnapshot($operationId, $table, $id);
 
-        Transaction::commit();
+    //     Transaction::commit();
 
-        return success_response([
-			'message' => 'data_has_been_updated',
-			'data' => Data::find($view, $id)
-        ]);
-    }
+    //     return success_response([
+	// 		'message' => 'data_has_been_updated',
+	// 		'data' => Data::find($view, $id)
+    //     ]);
+    // }
 
     public function delete()
     {
         $params = $this->via([
+			'table' => 'required|string',
 			'id' => 'required',
-			'table' => 'string',
         ]);
 
         $id = $params['id'];
         $table = $params['table'];
 
-        Transaction::begin();
-
-        DB::table($table)->where('_id', $id)->update([
-            'IsDeleted' => true
-        ]);
-
-        Transaction::commit();
+        DB::delete($table, $id);
 
         return success_response([
             'message' => 'data_has_been_deleted'
@@ -145,50 +204,50 @@ class DataController extends BaseController
         ]);
     }
 
-    public function batchUpdate()
-    {
-        $params = $this->via([
-            'view' => 'required|string',
-            'namespace' => 'string',
-			'table' => 'string',
-			'columns' => 'array',
-			'data' => 'array'
-        ]);
+    // public function batchUpdate()
+    // {
+    //     $params = $this->via([
+    //         'view' => 'required|string',
+    //         'namespace' => 'string',
+	// 		'table' => 'string',
+	// 		'columns' => 'array',
+	// 		'data' => 'array'
+    //     ]);
 
-        $data = $params['data'];
-        $view = $params['view'];
-        $table = $params['table'];
-        $columns = $params['columns'];
-        $namespace = $params['namespace'];
+    //     $data = $params['data'];
+    //     $view = $params['view'];
+    //     $table = $params['table'];
+    //     $columns = $params['columns'];
+    //     $namespace = $params['namespace'];
 
-        $ids = array_map(function ($item) {
-            return $item['_id'];
-        }, $data);
+    //     $ids = array_map(function ($item) {
+    //         return $item['_id'];
+    //     }, $data);
 
-        $userId = JWT::user()->id;
+    //     $userId = JWT::user()->id;
 
-        // 一致性检查
-        Transaction::begin();
+    //     // 一致性检查
+    //     Transaction::begin();
 
-        $operationId = DB::table('_log.operations')->insertGetId([
-            'namespace' => $namespace,
-            'type' => 'batchUpdate',
-            'operator_id' => $userId
-        ]);
+    //     $operationId = DB::table('_log.operations')->insertGetId([
+    //         'namespace' => $namespace,
+    //         'type' => 'batchUpdate',
+    //         'operator_id' => $userId
+    //     ]);
 
-        Data::batchUpdate($table, $ids, $columns);
+    //     Data::batchUpdate($table, $ids, $columns);
 
-        Data::takeSnapshots($operationId, $table, $ids);
+    //     Data::takeSnapshots($operationId, $table, $ids);
 
-        Transaction::commit();
+    //     Transaction::commit();
 
-        $result = DB::table($view)->whereIn('_id', $ids)->get();
+    //     $result = DB::table($view)->whereIn('_id', $ids)->get();
 
-        return success_response([
-         	'message' => 'data_has_been_updated',
-          	'data' => $result
-        ]);
-    }
+    //     return success_response([
+    //      	'message' => 'data_has_been_updated',
+    //       	'data' => $result
+    //     ]);
+    // }
 
     public function records()
     {
@@ -218,42 +277,28 @@ class DataController extends BaseController
             'namespace' => 'string'
         ]);
 
-        $userId = JWT::user()->id;
+        // $userId = JWT::user()->id;
 
         $data = $params['data'];
         $table = $params['table'];
         $fields = $params['header'];
         $unique = $params['unique'];
         $conflict = $params['conflict'];
-        $namespace = $params['namespace'];
+        // $namespace = $params['namespace'];
 
-        Transaction::begin();
+        // Transaction::begin();
 
-        $data = Data::batchCreate($table, $fields, $data, $unique, $conflict);
+        return Data::batchCreate($table, $fields, $data, $unique, $conflict);
 
-        $ids = [];
+        // $operationId = DB::table('_log.operations')->insertGetId([
+        //     'type' => 'upload',
+        //     'operator_id' => $userId,
+        //     'namespace' => $namespace
+        // ]);
 
-        foreach ($data as $item) {
-            $ids[] = $item->_id;
-        }
+        // Data::takeSnapshots($operationId, $table, $ids);
 
-        $operationId = DB::table('_log.operations')->insertGetId([
-            'type' => 'upload',
-            'operator_id' => $userId,
-            'namespace' => $namespace
-        ]);
-
-        Data::takeSnapshots($operationId, $table, $ids);
-
-        Transaction::commit();
-
-        return array_map(function ($item) use ($unique) {
-            $date = [];
-            foreach ($unique as $key) {
-                $data[] = $item->$key;
-            }
-            return $data;
-        }, $data);
+        // Transaction::commit();
     }
 
     public function export()

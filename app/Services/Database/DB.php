@@ -2,146 +2,110 @@
 
 namespace App\Services\Database;
 
-use DB as Database;
+use DB as D;
 
 class DB
 {
-    /**
-     * @param string $table
-     * @param array<integer>||integer $ids
-     *
-     * @return array<object> $data
-     */
-
-    public function find($table, $ids)
+    public function all($table)
     {
-        $ids = is_array($ids) ? $ids : [$ids];
-        return Database::table($table)->whereIn('id', $ids)->get();
+        return D::table($table)->get();
     }
 
-    /**
-     * @param string $table
-     * @param integer $id
-     *
-     * @return object $data
-     */
-
-    public function findOne($table, $id, $columns = '*')
+    public function find($table, $values, $columns = [], $key = 'id')
     {
-        return Database::table($table)->select($columns)
-                       ->where('id', $id)->get()[0];
+        $values = is_array($values) ? $values : [$values];
+        $columns = sizeof($columns) ? $columns : '*';
+        return D::table($table)->select($columns)
+                       ->whereIn($key, $values)->get();
     }
 
-    /**
-     * @param string $table
-     * @param array $data
-     * 
-     * 在制定数据表内创建一条或多条数据
-     */
+    public function paginate($view, $where, $pageSize, $orderBy)
+    {
+        $query = D::table($view)->where($where);
+
+        foreach ($orderBy as $orderByItem) {
+            $query->orderBy($orderByItem[0], $orderByItem[1]);
+        }
+
+        return Serialize\Pagination::getResource(
+            $query->paginate($pageSize)
+        );
+    }
+
+    public function findOne($table, $value, $columns = [], $key = 'id')
+    {
+        $columns = sizeof($columns) ? $columns : '*';
+
+        $result = D::table($table)->select($columns)
+                          ->where($key, $value)->get();
+        return sizeof($result) ? (array)$result[0] : null;
+    }
+
+    public function findWhere($table, $wheres, $columns = [])
+    {
+        $wheres = is_array($wheres) ? $wheres : [$wheres];
+        $columns = sizeof($columns) ? $columns : '*';
+
+        return D::table($table)->where($wheres)->get();
+    }
 
     public function create($table, $data)
     {
-        Database::table($table)->insert($data);
+        D::table($table)->insert($data);
     }
-
-    /**
-     * @param string $table
-     * @param array $data
-     * @param string $key
-     * 
-     * @return string|array $id
-     * 
-     * 在制定数据表中插入一条数据，并返回插入后数据的 id
-     */
 
     public function insertOne($table, $data, $key = 'id')
     {
-        return Database::table($table)->insertGetId($data, $key);
+        return D::table($table)->insertGetId($data, $key);
     }
-
-    /**
-     * @param string $table
-     * @param array $data
-     * 
-     * @return array $ids
-     * 
-     * 在制定数据表中插入一条或多条数据，并返回所有插入数据的 id
-     */
 
     public function insert($table, $data, $id = 'id')
     {
-        $data = is_array($data) ? $data : [$data];
+        $data = isset($data[0]) ? $data : [$data];
         $ids = [];
+
         foreach ($data as $datum) {
-            $ids[] = Database::table($table)->insertGetId($data, $id);
+            $ids[] = D::table($table)->insertGetId($datum, $id);
         }
 
         return $ids;
     }
 
-    /**
-     * @param string $table
-     * @param array $ids
-     * @param array $data
-     */
-
-    public function update($table, $ids, $data)
+    public function update($table, $ids, $data, $key = 'id')
     {
         $ids = is_array($ids) ? $ids : [$ids];
-        Database::table($table)->whereIn('id', $ids)->update($data);
+        D::table($table)->whereIn($key, $ids)->update($data);
     }
 
-    /**
-     * @param string $table
-     * @param array $ids
-     * @param array $data
-     * 
-     * 在指定数据表中更新某几条数据
-     */
+    public function updateWhere($table, $cods, $data)
+    {
+        $cods = isset($cods[0]) && is_array($cods[0]) ? $cods : [$cods];
+        $query = D::table($table);
+        foreach ($cods as $cod) {
+            $cod = isset($cod[0]) ? $cod : [$cod];
 
-    public function updateWhereIn($table, $ids, $data, $key = 'id')
+            $query = call_user_func_array([$query, 'where'], $cod);
+        }
+
+        return $query->update($data);
+    }
+
+    public function delete($table, $ids, $key = 'id')
     {
         $ids = is_array($ids) ? $ids : [$ids];
-
-        Database::table($table)->whereIn($key, $ids)->update($data);
+        D::table($table)->whereIn($key, $ids)->delete();
     }
 
-    /**
-     * 插入数据并返回 Id
-     * 由于技术原因，目前将一条一条地插入
-     * @param array $data
-     */
-
-    // public function insert($data)
-    // {
-    //     $data = isset($data[0]) ? $data : [$data];
-    //     $ids = [];
-    //     foreach ($data as $datum) {
-    //         $ids[$datum['table']] = [];
-    //         $params = $datum['data'];
-    //         $params = isset($params[0]) ? $params : [$params];
-    //         foreach ($params as $param) {
-    //             array_push(
-    //                 $ids[$datum['table']],
-    //                 Database::table($datum['table'])->insertGetId($param)
-    //             );
-    //         }
-    //     }
-
-    //     return $ids;
-    // }
-
-    // public function update($table, $ids, $data)
-    // {
-    //     $ids = is_array($ids) ? [$ids] : $ids;
-
-    //     Database::table($table)->whereIn('id', $ids)->update($data);
-    // }
-
-    public function delete($table, $ids)
+    public function deleteWhere($table, $cods)
     {
-        $ids = is_array($ids) ? [$ids] : $ids;
+        $cods = isset($cods[0]) && is_array($cods[0]) ? $cods : [$cods];
+        $query = D::table($table);
+        foreach ($cods as $cod) {
+            $cod = isset($cod[0]) ? $cod : [$cod];
 
-        Database::table($table)->whereIn('id', $ids)->delete();
+            $query = call_user_func_array([$query, 'where'], $cod);
+        }
+
+        return $query->delete();
     }
 }

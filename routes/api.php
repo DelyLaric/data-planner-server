@@ -39,9 +39,11 @@ Route::post('data/validate', 'ValidationController@validation');
 Route::post('data/export', 'DataController@export');
 Route::post('data/upload', 'DataController@upload');
 
-Route::post('data/search', 'DataController@search');
+Route::post('data/paginate', 'DataController@paginate');
 Route::post('data/create', 'DataController@create');
+Route::post('data/insert', 'DataController@insert');
 Route::post('data/update', 'DataController@update');
+Route::post('data/delete', 'DataController@delete');
 Route::post('data/batch/update', 'DataController@batchUpdate');
 
 Route::post('data/records/search', 'DataController@records');
@@ -50,4 +52,3 @@ Route::post('operation/confirm', 'OperationController@confirm');
 Route::post('records/search', 'RecordController@search');
 
 Route::post('schema/run', 'SchemaController@run');
-

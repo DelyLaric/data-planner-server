@@ -2,68 +2,30 @@
 
 namespace App\Services\Database;
 
-use DB;
+use App\Services\Database\Facades\DB;
 
 class Data
 {
-
-    /**
-     * @param array $data
-     *   $data: [{
-     *      "table": "users",
-     *      "data": [{
-     *          "name": "test",
-     *          "email": "email"
-     *      }] || {...}
-     *   }] || {...}
-     */
-
-    public function insert($operationId, $table, $data)
+    public function create($operationId, $table, $data)
     {
-        $affectId = Facade\Affect::insert($operationId, $table);
-
+        $id = Facades\DB::insert($table, $data);
+        Facades\Snapshot::create($operationId, $table, $id);
     }
 
-    public function insert($userId, $namespace, $type, $comment, $data)
+    public function update($operationId, $table, $id, $data)
     {
-        $data = isset($data[0]) ? $data : [$data];
- 
-        Facades\Transaction::begin();
-
-        $operationId = Facades\Operation::create($userId, $namespace, $type, $comment);
-        $dataIds = Facades\Data::insert($data);
-        $affectIds = Facades\Affect::insert($operationId, array_keys($dataIds));
-
-        foreach ($dataIds as $table => $ids) {
-            Facades\Snapshot::create($affectIds[$table], $table, $ids);
-        }
-
-        Facades\Transaction::commit();
+        Facades\DB::update($table, $id);
+        Facades\Snapshot::new($operationId, $table, $id);
     }
 
-    /**
-     * @param array $data
-     * [{
-     *   "table": "users",
-     *   "view": "user_view",
-     *   "data": [{
-     *      .....
-     *   }],
-     * }]
-     */
-
-    public function update($userId, $namespace, $type, $comment, $data)
+    public function delete($operationId, $table, $id)
     {
-        $data = isset($data[0]) ? $data : [$data];
-        Facades\Transaction::begin();
-        $operationId = Facade\Operation::create($userId, $namespace, $type, $comment);
-        $dataIds = Facades\Data::update($data);
-        $affectIds = Facade\Affect::insert($operationId, array_keys($dataIds));
+        Facades\DB::delete($table, $id);
+        Facades\Snapshot::delete($table, $id);
+    }
 
-        foreach ($dataIds as $table => $ids) {
-            Facades\Snapshot::create($affectIds[$table], $table, $ids);
-        }
-
-        Facades\Transaction::commit();
+    public function search($table, $ids)
+    {
+        return Facades\DB::find($table, $ids);
     }
 }

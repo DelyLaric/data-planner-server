@@ -11,11 +11,11 @@ class Auth
     {
         // try to load incofmation in token
 
-        if (!JWT::parseToken()) {
-            return response()->json([
-                'message' => 'token is invalid'
-            ], 401);
-        }
+        // if (!JWT::parseToken()) {
+        //     return response()->json([
+        //         'message' => 'token is invalid'
+        //     ], 401);
+        // }
 
 
         // pass the authenticate

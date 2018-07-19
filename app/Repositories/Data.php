@@ -126,18 +126,35 @@ class Data extends BaseRepository
         $unique = $this->transUniqueKey($uniqueField);
         $columns = $this->transHeader($fields);
         $updateSetter = $this->transUpdateFieldValue($fields);
+        
+        if (sizeof($uniqueField)) {
+            if ($conflict === 'update') {
+                $handleConflict = "do update set $updateSetter ";
+            } else {
+                $handleConflict = 'do nothing ';
+            }
 
-        if ($conflict === 'update') {
-            $handleConflict = "do update set $updateSetter ";
+            $data = DB::select(
+                "insert into $table $columns ".
+                "values $values on conflict ($unique)".
+                $handleConflict . "returning id, $unique"
+            );
+
+            return array_map(function ($item) use ($uniqueField) {
+                $date = [];
+                foreach ($uniqueField as $key) {
+                    $data[] = $item->$key;
+                }
+                return $data;
+            }, $data);
         } else {
-            $handleConflict = 'do nothing ';
-        }
+            $result = DB::select(
+                "insert into $table $columns ".
+                "values $values returning id"
+            );
 
-        return DB::select(
-            "insert into $table $columns ".
-            "values $values on conflict ($unique)".
-            $handleConflict . "returning _id, $unique"
-        );
+            return $result;
+        }
     }
 
     public function batchCreateIgnore()

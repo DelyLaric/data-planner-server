@@ -6,28 +6,35 @@ use DB;
 
 class Snapshot
 {
-    public function create($affectId, $table, $ids)
+    public function new($operationId, $table, $id)
     {
-        $ids = is_array($ids) ? $ids : [$ids];
+        $data = Facades\DB::findOne($table, $id);
+        Facades\DB::create('_log.snapshot', [
+            'operationId' => $operationId,
+            'table' => $table,
+            'data' => json_encode($data)
+        ]);
+    }
 
-        $dataSet = DB::table($table)->whereIn('id', $ids)->get();
-
-        $insertParams = [];
-
+    public function create($operationId, $table, $ids)
+    {
+        $dataSet = Facades\DB::find($table, $ids);
         foreach ($dataSet as $data) {
             $insertParams[] = [
-                'affectId' => $affectId,
+                'operationId' => $operationId,
+                'table' => $table,
                 'data' => json_encode($data)
             ];
         }
 
-        DB::table('_log.snapshot')->insert($insertParams);
+        Facades\DB::create('_log.snapshot', $insertParams);
+    }
+
+    // todo remove DB injection !!!!!!!!!!!!!!
+    public function delete($table, $ids)
+    {
+        $ids = is_array($ids) ? $ids : [$ids];
+
+        DB::table('_log.snapshot')->where('table', $table)->whereIn('id', $ids)->delete();
     }
 }
-
-    /**
-     * @param string $table
-     * @param array $data
-     * 
-     * 在制定数据表中插入一条或多条数据，并返回插入后数据的 id
-     */
