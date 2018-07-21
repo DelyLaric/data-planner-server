@@ -92,7 +92,7 @@ class PlantPlan extends Migration
             $table->string('SpsSqPlanningState')->nullable()->comment('SPS/SQ规划状态');
 
             $table->string('LinesidePackageId')->nullable()->comment('线边包装代码');
-            $table->string('LinesidePackageNumber')->nulllable()->comment('线边包装数量');
+            $table->string('LinesidePackageNumber')->nullable()->comment('线边包装数量');
 
             $table->string('LinesidePullMethod')->nullable()->comment('拉动方式');
             $table->string('LinesideStoreMethod')->nullable()->comment('线旁存储方式');
