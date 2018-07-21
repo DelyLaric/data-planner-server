@@ -91,17 +91,15 @@ class PlantPlan extends Migration
             $table->string('SpsSqMaxValue')->nullable()->comment('最大值（件）');
             $table->string('SpsSqPlanningState')->nullable()->comment('SPS/SQ规划状态');
 
+            $table->string('LinesidePackageId')->nullable()->comment('线边包装代码');
+            $table->string('LinesidePackageNumber')->nulllable()->comment('线边包装数量');
+
             $table->string('LinesidePullMethod')->nullable()->comment('拉动方式');
             $table->string('LinesideStoreMethod')->nullable()->comment('线旁存储方式');
             $table->string('LinesideDollyType')->nullable()->comment('Dolly类型');
             $table->string('LinesideMinValue')->nullable()->comment('最小值（件）');
             $table->string('LinesideMaxValue')->nullable()->comment('最大值（件）');
             $table->string('LinesideMaterialRackId')->nullable()->comment('料架编号');
-            $table->string('LinesidePackingId')->nullable()->comment('线边包装代码');
-            $table->string('LinesidePackingNumber')->nullable()->comment('线边包装数量');
-            $table->string('LinesidePackingLength')->nullable()->comment('长（毫米）');
-            $table->string('LinesidePackingWidth')->nullable()->comment('宽（毫米）');
-            $table->string('LinesidePackingHeight')->nullable()->comment('高（毫米）');
             $table->string('LinesidePlanningState')->nullable()->comment();
 
             $table->string('TotalDemand')->nullable()->comment('总需求量');
